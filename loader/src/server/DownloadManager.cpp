@@ -295,28 +295,8 @@ std::optional<ModDownload> ModDownloadManager::startDownload(
     std::optional<DependencyFor> dependencyFor,
     std::optional<std::string> replacesMod
 ) {
-    // If this mod has already been successfully downloaded or is currently
-    // being downloaded, return as you can't download multiple versions of the
-    // same mod simultaneously, since that wouldn't make sense. I mean the new
-    // version would just immediately override to the other one
-    if (m_impl->downloads.contains(id)) {
-        // If the download errored last time, then we can try again
-        if (m_impl->downloads.at(id).canRetry()) {
-            m_impl->downloads.erase(id);
-        }
-        // Otherwise return
-        else return std::nullopt;
-    }
-
-    // Start a new download by constructing a ModDownload (which starts the
-    // download)
-    auto [it, _] = m_impl->downloads.emplace(id, ModDownload(
-        id,
-        std::move(version),
-        std::move(dependencyFor),
-        std::move(replacesMod)
-    ));
-    return it->second;
+    // Downloading mods is disabled in this fork
+    return std::nullopt;
 }
 void ModDownloadManager::cancelAll() {
     for (auto& [_, d] : m_impl->downloads) {
@@ -329,15 +309,6 @@ void ModDownloadManager::confirmAll() {
     }
 }
 void ModDownloadManager::startUpdateAll() {
-    m_impl->updateAllTask.spawn(checkAllUpdates(), [this](auto result) {
-        if (result.isOk()) {
-            for (auto& mod : result.unwrap().updates) {
-                if (mod.hasUpdateForInstalledMod()) {
-                    this->startDownload(mod.id, mod.version);
-                }
-            }
-        }
-    });
 }
 void ModDownloadManager::dismissAll() {
     std::erase_if(m_impl->downloads, [](auto const& d) {

@@ -530,9 +530,7 @@ void ModList::onCheckUpdates(InstalledModsUpdateCheck const& check) {
     m_updateAllBtn->setID("update-all-button");
     m_updateAllMenu->addChild(m_updateAllBtn);
 
-    // Disable Update All button if there are only deprecations since those
-    // should be updated one-by-one as a conscious user decision
-    m_updateAllBtn->setVisible(check.modsWithUpdates.size());
+    m_updateAllBtn->setVisible(false);
 
     m_updateAllContainer->setVisible(true);
     this->updateTopContainer();
@@ -780,7 +778,6 @@ void ModList::onToggleErrors(CCObject*) {
     }
 }
 void ModList::onUpdateAll(CCObject*) {
-    server::ModDownloadManager::get()->startUpdateAll();
 }
 void ModList::onModtoberInfo(CCObject*) {
     ModtoberPopup::create()->show();

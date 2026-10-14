@@ -179,16 +179,6 @@ server::ServerFuture<server::ServerModUpdateOneCheck> ModSource::checkUpdates() 
     co_return Ok(m_availableUpdate);
 }
 void ModSource::startInstall() {
-    if (auto update = this->hasUpdates().update) {
-        server::ModDownloadManager::get()->startDownload(this->getID(), update->version);
-    } else {
-        server::ModDownloadManager::get()->startDownload(
-            this->getID(),
-            this->asServer()
-                ? std::optional{this->asServer()->latestVersion().getVersion()}
-                : std::nullopt
-        );
-    }
 }
 void ModSource::requestEnable() {
     std::visit(makeVisitor {

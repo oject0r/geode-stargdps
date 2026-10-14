@@ -204,11 +204,7 @@ bool ModItem::init(ModSource&& source, bool listItem) {
     }
 
     if (!spr) {
-        if (Loader::get()->isModInstalled(m_source.getID())) {
-            spr = createGeodeButton("View", 50, false, true);
-        } else {
-            spr = createGeodeButton("Get", 50, false, true, GeodeButtonSprite::Install);
-        }
+        spr = createGeodeButton("View", 50, false, true);
     }
 
     auto viewBtn = CCMenuItemSpriteExtra::create(spr, this, menu_selector(ModItem::onView));
@@ -677,7 +673,7 @@ void ModItem::updateState() {
     auto update = m_source.hasUpdates();
     if ((update.update || update.deprecation) && !(download && (download->isActive() || download->isDone()))) {
         if (update.update) {
-            m_updateBtn->setVisible(true);
+            m_updateBtn->setVisible(false);
 
             std::string updateString = "";
             updateString += m_source.getMetadata().getVersion().toVString() + " -> " + update.update->version.toVString();
@@ -988,7 +984,6 @@ void ModItem::onPin(CCObject*) {
     }
 }
 void ModItem::onInstall(CCObject*) {
-    m_source.startInstall();
 }
 void ModItem::onDevelopers(CCObject*) {
     DevListPopup::create(m_source)->show();

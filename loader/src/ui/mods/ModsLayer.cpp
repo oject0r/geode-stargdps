@@ -540,7 +540,7 @@ bool ModsLayer::init() {
     for (auto item : std::initializer_list<std::tuple<const char*, const char*, ModListSource*, const char*, bool>> {
         { "download.png"_spr, "Installed", InstalledModListSource::get(InstalledModListType::All), "installed-button", false },
         { "GJ_starsIcon_001.png", "Featured", ServerModListSource::get(ServerModListType::Featured), "featured-button", false },
-        { "globe.png"_spr, "Download", ServerModListSource::get(ServerModListType::Download), "download-button", false },
+        { "globe.png"_spr, "Browse", ServerModListSource::get(ServerModListType::Download), "download-button", false },
         { "GJ_timeIcon_001.png", "Recent", ServerModListSource::get(ServerModListType::Recent), "recent-button", false },
     }) {
         auto btn = CCMenuItemSpriteExtra::create(

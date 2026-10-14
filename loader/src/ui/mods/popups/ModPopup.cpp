@@ -789,13 +789,17 @@ void ModPopup::updateState() {
     m_reenableBtn->toggle(m_enableBtn->isToggled());
     m_reenableBtn->setVisible(asMod && modRequestedActionIsToggle(asMod->getRequestedAction()));
 
-    m_updateBtn->setVisible(
-        m_source.hasUpdates().update.has_value() &&
-        asMod->getRequestedAction() == ModRequestedAction::None
-    );
-    m_installBtn->setVisible(this->availableForInstall());
-    m_unavailableBtn->setVisible(m_source.asServer() && !this->availableForInstall());
+    m_updateBtn->setVisible(false);
+    m_installBtn->setVisible(false);
+    m_unavailableBtn->setVisible(false);
     m_uninstallBtn->setVisible(asMod && asMod->getRequestedAction() == ModRequestedAction::None);
+
+    if (auto manageContainer = m_restartRequiredLabel->getParent()) {
+        manageContainer->setVisible(asMod != nullptr);
+    }
+    if (auto installContainer = m_installBG->getParent()) {
+        installContainer->setVisible(asMod != nullptr);
+    }
 
     if (asMod && modRequestedActionIsUninstall(asMod->getRequestedAction())) {
         m_installStatusLabel->setString("Mod has been uninstalled");
@@ -1151,23 +1155,6 @@ void ModPopup::onEnable(CCObject*) {
 }
 
 void ModPopup::onInstall(CCObject*) {
-    // A futile attempt to try and prevent users from blindly installing
-    // everything on the index
-    if (m_source.asServer() && Loader::get()->getAllMods().size() > 10) {
-        if (!Mod::get()->setSavedValue("shown-dont-install-everything-warning", true)) {
-            FLAlertLayer::create(
-                "Warning",
-                "Installing too many mods can lead to <cr>instability</c>, <cr>bugs</c>, and "
-                "<cr>crashes</c>. <cy>You should only install mods you need!</c>",
-                "OK"
-            )->show();
-            return;
-        }
-    }
-
-    m_source.startInstall();
-
-    this->onClose(nullptr);
 }
 
 void ModPopup::onUninstall(CCObject*) {
@@ -1237,18 +1224,5 @@ ModSource& ModPopup::getSource() & {
 }
 
 bool ModPopup::availableForInstall() const {
-    // Adapted from ModItem.cpp ModItem::onView
-    if (auto serverSource = m_source.asServer()) {
-        auto& version = serverSource->latestVersion();
-        auto gameVersion = version.getGameVersion();
-
-        if (
-            (gameVersion == "0.000") ||
-            (gameVersion && gameVersion != "*" && gameVersion != GEODE_STR(GEODE_GD_VERSION)) ||
-            (!Loader::get()->isModVersionSupported(version.getGeodeVersion()))) {
-            return false;
-        }
-        return true;
-    }
     return false;
 }
