@@ -881,10 +881,8 @@ void ModsLayer::onRestartGD(CCObject*) {
     );
 }
 void ModsLayer::onOpenModsFolder(CCObject*) {
-    file::openFolder(dirs::getModsDir());
 }
 void ModsLayer::onAddModFromFile(CCObject*) {
-    ModsLayer::installModFromFile();
 }
 
 ModsLayer* ModsLayer::create() {
@@ -926,35 +924,4 @@ void ModsLayer::refreshList() {
 }
 
 void ModsLayer::installModFromFile() {
-    if (!Mod::get()->setSavedValue("shown-manual-install-info", true)) {
-        return FLAlertLayer::create(
-            nullptr,
-            "Manually Installing Mods",
-            "You can <cg>manually install mods</c> by selecting their <cd>.geode</c> files. "
-            "Do note that manually installed mods <co>are not verified to be safe and stable</c>!\n"
-            "<cr>Proceed at your own risk!</c>",
-            "OK", nullptr,
-            350
-        )->show();
-    }
-
-    async::spawn(file::pick(file::PickMode::OpenFile, file::FilePickOptions {
-        .filters = { file::FilePickOptions::Filter {
-            .description = "Geode Mods",
-            .files = { "*.geode" },
-        }}
-    }), [](Result<std::optional<std::filesystem::path>> result) {
-        if (result.isOk() && result.unwrap().has_value()) {
-            LoaderImpl::get()->installModManuallyFromFile(std::move(result).unwrap().value(), []() {
-                InstalledModListSource::get(InstalledModListType::All)->clearCache();
-            });
-        }
-        else if (!result.isOk()) {
-            FLAlertLayer::create(
-                "Unable to Select File",
-                result.unwrapErr(),
-                "OK"
-            )->show();
-        }
-    });
 }
