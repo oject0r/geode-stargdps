@@ -904,19 +904,7 @@ ModsLayer* ModsLayer::scene() {
 }
 
 server::ServerFuture<InstalledModsUpdateCheck> ModsLayer::checkInstalledModsForUpdates() {
-    auto all = ARC_CO_UNWRAP(co_await server::checkAllUpdates());
-    InstalledModsUpdateCheck updatesFound;
-    for (auto& update : all.updates) {
-        if (auto mod = update.hasUpdateForInstalledMod()) {
-            updatesFound.modsWithUpdates.push_back(mod);
-        }
-    }
-    for (auto& dep : all.deprecations) {
-        if (auto mod = dep.hasDeprecationForInstalledMod()) {
-            updatesFound.modsWithDeprecations.push_back(mod);
-        }
-    }
-    co_return Ok(std::move(updatesFound));
+    co_return Ok(InstalledModsUpdateCheck {});
 }
 
 void ModsLayer::refreshList() {

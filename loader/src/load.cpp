@@ -209,16 +209,6 @@ int geodeEntry(void* platformData) {
         ipc::setup();
     }
 
-    // download and install new loader update in the background
-
-    if (Mod::get()->getSettingValue<bool>("auto-check-updates")) {
-        log::info("Starting loader update check");
-        updater::checkForLoaderUpdates();
-    }
-    else {
-        log::info("Skipped loader update check");
-    }
-
     auto end = std::chrono::high_resolution_clock::now();
     auto time = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count();
     log::info("Entry took {}s", static_cast<float>(time) / 1000.f);

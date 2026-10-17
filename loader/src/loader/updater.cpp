@@ -237,106 +237,18 @@ bool updater::verifyLoaderResources() {
 }
 
 void updater::downloadLoaderUpdate(std::string url, std::string hash) {
-    if (RUNNING_REQUESTS.contains("@downloadLoaderUpdate")) return;
-
-    auto req = web::WebRequest();
-    req.onProgress([](web::WebProgress const& progress) {
-        LoaderUpdateEvent().send(
-            UpdateProgress(
-                static_cast<uint8_t>(progress.downloadProgress().value_or(0)),
-                "Downloading update"
-            )
-        );
-    });
-
-    auto& holder = RUNNING_REQUESTS["@downloadLoaderUpdate"];
-    holder.spawn(
-        req.get(std::move(url)),
-        [hash = std::move(hash)](web::WebResponse response) {
-            RUNNING_REQUESTS.erase("@downloadLoaderUpdate");
-
-            auto result = installLoaderUpdate(std::move(response), hash);
-            if (!result) {
-                log::error("Failed to install latest update: {}", result.unwrapErr());
-                LoaderUpdateEvent().send(
-                    UpdateFailed(fmt::format("Unable to install loader update: {}", result.unwrapErr()))
-                );
-                Mod::get()->setSavedValue("last-modified-auto-update-check", std::string());
-            }
-        }
-    );
+    // Auto updating is disabled in this fork
 }
 
 Result<> updater::installLoaderUpdate(utils::web::WebResponse response, std::string_view expectedHash) {
-    auto targetDir = dirs::getGeodeDir() / "update";
-
-    if (!response.ok()) {
-        auto info = response.string().unwrapOr("Unknown error");
-        return Err("Download failed: {}", info);
-    }
-
-    // validate hash
-    auto data = std::move(response).data();
-    if (expectedHash.empty()) {
-        log::debug("Skipping hash validation for loader update");
-    } else {
-        auto actualHash = geode::sha256(data).toString();
-        if (actualHash != expectedHash) {
-            log::error("Hash mismatch in downloaded loader update, we expected {}, but got {}", expectedHash, actualHash);
-            return Err("Hash mismatch in downloaded loader update");
-        }
-    }
-
-    // unzip resources zip
-    auto unzip = file::Unzip::create(data);
-    if (!unzip) {
-        return Err("Unable to unzip update: {}", unzip.unwrapErr());
-    }
-
-    auto ok = unzip.unwrap().extractAllTo(targetDir);
-    if (!ok) {
-        return Err("Unable to extract update: {}", ok.unwrapErr());
-    }
-
-    s_isNewUpdateDownloaded = true;
-    LoaderUpdateEvent().send(UpdateFinished());
+    // Auto updating is disabled in this fork
     return Ok();
 }
 
 void updater::checkForLoaderUpdates() {
-    // Check for updates in the background
-    async::spawn(
-        server::getLatestLoaderVersion(),
-        [](Result<server::ServerLoaderVersion, server::ServerError> res) {
-            if (res.ok()) {
-                auto& release = res.unwrap();
-                auto ver = VersionInfo::parse(release.tag).unwrapOrDefault();
-
-                log::info("Latest Geode version is {}", ver.toVString());
-                Mod::get()->setSavedValue("latest-version-auto-update-check", ver.toVString());
-
-                // make sure release is newer
-                if (ver <= Loader::get()->getVersion()) {
-                    if(ver <= VersionInfo(2, 0, 0, VersionTag(VersionTag::Beta, 1))) {
-                        log::warn("Invalid loader version detected, resetting update check time");
-
-                        Mod::get()->setSavedValue("last-modified-auto-update-check", std::string());
-                    }
-                    return;
-                }
-
-                updater::downloadLoaderUpdate(release.download.url, release.download.hash);
-            } else {
-                auto info = res.unwrapErr().details;
-                log::error("Failed to fetch updates {}", info);
-                LoaderUpdateEvent().send(
-                    UpdateFailed("Unable to check for updates: " + info)
-                );
-            }
-        }
-    );
+    // Auto updating is disabled in this fork
 }
 
 bool updater::isNewUpdateDownloaded() {
-    return s_isNewUpdateDownloaded;
+    return false;
 }

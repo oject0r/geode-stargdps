@@ -185,23 +185,6 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
             }
         }
 
-        // show auto update message
-        static bool shownUpdateInfo = false;
-        if (updater::isNewUpdateDownloaded() && !shownUpdateInfo) {
-            shownUpdateInfo = true;
-
-            Loader::get()->queueInMainThread([] {
-                auto popup = FLAlertLayer::create(
-                    "Update downloaded",
-                    "A new <cy>update</c> for Geode has been installed! "
-                    "Please <cy>restart the game</c> to apply.",
-                    "OK"
-                );
-
-                popup->m_noElasticity = true;
-                popup->show();
-            });
-        }
 
         // show crash info
         static bool shownLastCrash = false;
@@ -234,48 +217,6 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
             });
         }
 
-        // Check for mod updates
-        static bool checkedModUpdates = false;
-        if (!checkedModUpdates) {
-            // only run it once
-            checkedModUpdates = true;
-
-            m_fields->m_updateCheckTask.spawn(ModsLayer::checkInstalledModsForUpdates(), [this](auto result) {
-                if (result.isOk()) {
-                    auto updatesFound = result.unwrap();
-                    if (updatesFound.modsWithUpdates.size() || updatesFound.modsWithDeprecations.size()) {
-                        if (updatesFound.modsWithUpdates.size()) {
-                            log::info(
-                                "Found updates for mods: {}!",
-                                ranges::map<std::vector<std::string>>(
-                                    updatesFound.modsWithUpdates,
-                                    +[](Mod* mod) { return mod->getID(); }
-                                )
-                            );
-                            FOUND_MOD_UPDATES = updatesFound.modsWithUpdates.size();
-                        }
-                        if (updatesFound.modsWithDeprecations.size()) {
-                            log::info(
-                                "Found deprecations for mods: {}!",
-                                ranges::map<std::vector<std::string>>(
-                                    updatesFound.modsWithDeprecations,
-                                    +[](Mod* mod) { return mod->getID(); }
-                                )
-                            );
-                            FOUND_MOD_DEPRECATIONS = updatesFound.modsWithDeprecations.size();
-                        }
-                        this->updateGeodeButtonMarkers();
-                    }
-                    else {
-                        log::info("All mods up to date!");
-                    }
-                }
-                else {
-                    auto error = result.unwrapErr();
-                    log::error("Unable to check for mod updates ({}): {}", error.code, error.details);
-                }
-            });
-        }
 
         // Update markers on Geode button (errors, updates, etc.)
         this->updateGeodeButtonMarkers();
